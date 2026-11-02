@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>國語六上 1-6 課 闖關學習樂園</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome 圖示 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Google 字體 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              cream: '#FFFDF9',
+              yellow: '#FDE047',
+              orange: '#FB923C',
+              mint: '#34D399',
+              blue: '#60A5FA',
+              purple: '#A78BFA',
+              coral: '#F87171',
+              dark: '#1E293B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* 翻轉卡片 3D 效果 */
+    .perspective-1000 {
+      perspective: 1000px;
+    }
+    .transform-style-3d {
+      transform-style: preserve-3d;
+    }
+    .backface-hidden {
+      backface-visibility: hidden;
+    }
+    .rotate-y-180 {
+      transform: rotateY(180deg);
+    }
+    /* 自訂平滑過渡 */
+    * {
+      transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+    }
+    /* 彈跳星星動畫 */
+    @keyframes star-pop {
+      0% { transform: scale(0.8); }
+      50% { transform: scale(1.3) rotate(15deg); }
+      100% { transform: scale(1); }
+    }
+    .animate-star {
+      animation: star-pop 0.5s ease-out;
+    }
+    /* 隱藏滾動條但保持滾動 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-slate-800 font-sans min-h-screen flex flex-col text-lg select-none">
+
+  <!-- 頂部導航欄（特教輔助工具列） -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md shadow-sm border-b border-amber-100 px-4 py-3">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <!-- 標題與吉祥物 -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchLesson(1)">
+        <div class="w-12 h-12 bg-amber-100 rounded-2xl flex items-center justify-center text-3xl shadow-inner text-amber-600">
+          🐱
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-black text-slate-800 tracking-wide flex items-center gap-2">
+            國語六上 闖關樂園
+            <span class="text-xs bg-amber-400 text-slate-900 px-2 py-0.5 rounded-full font-bold">1-6課</span>
+          </h1>
+          <p class="text-xs text-slate-500 font-medium">看懂詞語、快樂造句、累積星星！</p>
+        </div>
+      </div>
+
+      <!-- 右側輔助工具：星星計分、字級縮放、語音朗讀開關 -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <!-- 收集星星計數器 -->
+        <div class="flex items-center bg-amber-50 border-2 border-amber-200 rounded-2xl px-3 py-1.5 shadow-sm">
+          <i class="fa-solid fa-star text-amber-400 text-2xl mr-1.5 drop-shadow"></i>
+          <span id="star-count" class="font-black text-amber-600 text-xl">0</span>
+          <span class="text-xs text-amber-700 ml-1 font-bold">顆星</span>
+        </div>
+
+        <!-- 字體放大/縮小按鈕 -->
+        <div class="flex items-center bg-slate-100 rounded-2xl p-1 border border-slate-200">
+          <button onclick="changeFontSize(-1)" title="字體縮小" class="w-9 h-9 flex items-center justify-center font-bold text-slate-600 hover:bg-white rounded-xl shadow-xs active:scale-95">
+            A-
+          </button>
+          <button onclick="changeFontSize(1)" title="字體放大" class="w-9 h-9 flex items-center justify-center font-black text-slate-800 hover:bg-white rounded-xl shadow-xs active:scale-95">
+            A+
+          </button>
+        </div>
+
+        <!-- 語音朗讀停止/提示按鈕 -->
+        <button id="tts-stop-btn" onclick="stopSpeech()" class="h-10 px-3 bg-rose-50 text-rose-600 border border-rose-200 rounded-2xl flex items-center gap-1.5 text-sm font-bold hover:bg-rose-100 active:scale-95 transition-all">
+          <i class="fa-solid fa-volume-xmark"></i>
+          <span class="hidden sm:inline">安靜</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 課程選單快捷列（水平滑動卡片） -->
+  <section class="bg-gradient-to-r from-amber-50 via-orange-50 to-yellow-50 py-3 border-b border-orange-100">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1" id="lesson-tabs">
+        <!-- 由 JavaScript 動態生成 6 課按鈕 -->
+      </div>
+    </div>
+  </section>
+
+  <!-- 主要互動內容區域 -->
+  <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full" id="content-container">
+
+    <!-- 課次抬頭與大卡片 -->
+    <div class="bg-white rounded-3xl p-5 sm:p-7 shadow-sm border border-slate-100 mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-start gap-4">
+        <div id="lesson-icon" class="w-16 h-16 sm:w-20 sm:h-20 bg-amber-100 text-amber-700 rounded-3xl flex items-center justify-center text-4xl shadow-inner shrink-0">
+          🏃
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="lesson-badge" class="px-3 py-1 bg-amber-500 text-white text-xs sm:text-sm font-black rounded-full">第 1 課</span>
+            <span class="text-xs text-slate-400 font-medium">國小國語六上</span>
+          </div>
+          <h2 id="lesson-title" class="text-2xl sm:text-3xl font-black text-slate-800 mt-1">
+            跑道
+          </h2>
+          <p id="lesson-desc" class="text-sm sm:text-base text-slate-500 mt-1">
+            學會運動場上的堅持與友情，把詞語當成闖關夥伴！
+          </p>
+        </div>
+      </div>
+
+      <!-- 朗讀整課主要圈詞 -->
+      <div class="flex items-center gap-2">
+        <button onclick="readCurrentLessonWords()" class="w-full md:w-auto px-4 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl shadow-md shadow-emerald-200 flex items-center justify-center gap-2 active:scale-95 text-base">
+          <i class="fa-solid fa-volume-high"></i>
+          <span>朗讀本課全部詞語</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 模組功能切換分頁標籤（詞語探險 / 句型積木 / 星星小挑戰） -->
+    <div class="flex border-b-2 border-slate-200 mb-6 gap-2 sm:gap-6 text-base sm:text-xl font-black">
+      <button onclick="switchTab('vocab')" id="tab-vocab" class="tab-btn pb-3 px-3 text-amber-600 border-b-4 border-amber-500 flex items-center gap-2">
+        <span>📖 詞語探險卡片</span>
+        <span id="vocab-count-badge" class="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold">19個</span>
+      </button>
+      <button onclick="switchTab('sentence')" id="tab-sentence" class="tab-btn pb-3 px-3 text-slate-400 hover:text-slate-600 border-b-4 border-transparent flex items-center gap-2">
+        <span>🧩 句型積木拼圖</span>
+      </button>
+      <button onclick="switchTab('quiz')" id="tab-quiz" class="tab-btn pb-3 px-3 text-slate-400 hover:text-slate-600 border-b-4 border-transparent flex items-center gap-2">
+        <span>⭐ 星星小挑戰</span>
+      </button>
+    </div>
+
+    <!-- 模組 A：詞語探險卡片區 -->
+    <section id="module-vocab" class="block">
+      <!-- 提示條 -->
+      <div class="bg-amber-50 border-l-4 border-amber-400 p-3 sm:p-4 rounded-r-2xl mb-5 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 text-amber-800 text-sm sm:text-base font-medium">
+          <i class="fa-solid fa-lightbulb text-amber-500 text-lg"></i>
+          <span>點擊卡片任何地方可以「翻轉」看生活化白話解釋，按小喇叭 🔊 可以直接聽發音喔！</span>
+        </div>
+        <button onclick="flipAllCards()" class="shrink-0 text-xs sm:text-sm bg-white border border-amber-300 text-amber-800 font-bold px-3 py-1.5 rounded-xl hover:bg-amber-100">
+          全部翻面
+        </button>
+      </div>
+
+      <!-- 詞語網格卡片清單 -->
+      <div id="vocab-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <!-- 由 JavaScript 動態生成翻轉卡片 -->
+      </div>
+    </section>
+
+    <!-- 模組 B：句型積木造句區 -->
+    <section id="module-sentence" class="hidden">
+      <div class="space-y-6" id="sentence-container">
+        <!-- 句型卡片由 JS 動態生成 -->
+      </div>
+    </section>
+
+    <!-- 模組 C：星星小挑戰（快問快答） -->
+    <section id="module-quiz" class="hidden">
+      <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-slate-100 max-w-3xl mx-auto">
+        <!-- 測驗進度與獎勵狀態 -->
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">快問快答</span>
+            <h3 class="text-xl sm:text-2xl font-black text-slate-800 mt-1">看情境選詞語</h3>
+          </div>
+          <div class="text-right">
+            <span id="quiz-progress-text" class="text-sm font-bold text-slate-400">第 1 / 3 題</span>
+            <div class="w-24 sm:w-32 bg-slate-100 h-2.5 rounded-full mt-1 overflow-hidden">
+              <div id="quiz-progress-bar" class="bg-amber-500 h-full w-1/3 transition-all"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 題目內容 -->
+        <div id="quiz-box">
+          <!-- 由 JS 繪製測驗題目 -->
+        </div>
+
+        <!-- 答題反饋訊息 -->
+        <div id="quiz-feedback" class="mt-6 p-4 rounded-2xl hidden flex items-center gap-3">
+          <!-- 綠色或紅色提示 -->
+        </div>
+
+        <!-- 下一題按鈕 -->
+        <div class="mt-6 text-right">
+          <button id="quiz-next-btn" onclick="nextQuizQuestion()" class="hidden px-6 py-3 bg-amber-500 hover:bg-amber-600 text-slate-900 font-black rounded-2xl shadow-md active:scale-95 transition-all text-base">
+            下一題 ➔
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 成功通關彈窗 / 鼓勵視窗 -->
+  <div id="congrats-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 text-center shadow-2xl transform transition-all scale-95 border-4 border-amber-300">
+      <div class="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto text-5xl mb-4 animate-bounce">
+        🏆
+      </div>
+      <h3 class="text-2xl sm:text-3xl font-black text-slate-800 mb-2">闖關大成功！</h3>
+      <p id="congrats-msg" class="text-slate-600 mb-6 text-base">
+        你已經完成了這一課的所有挑戰，獲得了閃亮亮的小星星！
+      </p>
+      <div class="flex gap-3">
+        <button onclick="closeCongratsModal()" class="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-2xl">
+          再複習一次
+        </button>
+        <button onclick="goToNextLesson()" class="flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-slate-900 font-black rounded-2xl shadow-md">
+          前進下一課 🚀
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 頁尾聲明 -->
+  <footer class="bg-white border-t border-slate-200 py-6 mt-12 text-center text-sm text-slate-400">
+    <div class="max-w-4xl mx-auto px-4">
+      <p class="font-medium text-slate-500">國小國語六上 1-6 課 · 學習輔助教材互動平台</p>
+      <p class="mt-1 text-xs text-slate-400">友善大字體 · 口語化白話解釋 · 即時語音朗讀 · 快樂學習無壓力</p>
+    </div>
+  </footer>
+
+  <!-- 完整課程資料庫與互動邏輯 Script -->
+  <script>
+    /* ==========================================================================
+       1. 課程完整資料集（圈詞、白話口語、句型原句生活句、情境測驗題）
+       ========================================================================== */
+    const lessonsData = [
+      {
+        id: 1,
+        title: "跑道",
+        icon: "🏃",
+        desc: "運動會上拼盡全力，體會朋友之間的公平競爭與真心祝福！",
+        color: "amber",
+        vocabularies: [
+          { word: "壓軸", explain: "排在最後面最精彩的重頭戲", ex: "今天的魔術表演，最後壓軸的帽子變兔子最厲害！" },
+          { word: "委屈", explain: "心裡覺得很不公平、想哭卻不好意思說", ex: "明明不是我打破杯子卻被罵，心裡好委屈。" },
+          { word: "偏心", explain: "對某個人特別好，對其他人不公平", ex: "老師對全班都一樣好，一點都不偏心。" },
+          { word: "搬運", explain: "把重東西從這裡搬到那裡", ex: "大家一起幫忙搬運營養午餐的水果。" },
+          { word: "心存芥蒂", explain: "心裡有一個小疙瘩，卡著不舒服", ex: "自從那次吵架說開後，我們不再心存芥蒂了。" },
+          { word: "壓抑", explain: "把自己的難過或脾氣硬忍下來", ex: "想哭就哭出來，不要把情緒一直壓抑在心裡。" },
+          { word: "拒絕", explain: "搖搖頭說「我不要」、「我不行」", ex: "陌生人給的糖果，我們要勇敢說「不」拒絕。" },
+          { word: "尷尬", explain: "場面好冷或好糗，不知道眼睛要看哪裡", ex: "不小心叫錯同學的名字，真有點尷尬。" },
+          { word: "後悔", explain: "早知道剛剛就不要那樣做了", ex: "剛才吃了太多冰棒現在肚子痛，我真後悔！" },
+          { word: "拱手讓人", explain: "本來快到手的東西，隨便讓給別人", ex: "我們全隊全力防守，絕不把冠軍拱手讓人。" },
+          { word: "距離", explain: "兩個人或兩個地方隔了有多遠", ex: "看電視要保持適當的距離，眼睛才不會近視。" },
+          { word: "默默", explain: "不出聲音、安安靜靜地在一旁", ex: "媽媽默默在旁邊幫我準備溫熱的開水。" },
+          { word: "鬥志", explain: "想要拼第一名、想要贏的滿滿幹勁", ex: "聽到全場加油聲，選手們的鬥志都燃燒起來了！" },
+          { word: "扭曲", explain: "變形了、歪七扭八的樣子", ex: "他吃到超級酸的檸檬，整張臉都扭曲在一起。" },
+          { word: "猛然", explain: "突然一下嚇一跳的動作", ex: "走到半路，我猛然想起聯絡簿忘了帶！" },
+          { word: "愣住", explain: "呆住了，整個人停在原地", ex: "看到眼前突然出現的大蛋糕，弟弟高興得愣住了。" },
+          { word: "勝券在握", explain: "手拿著勝利門票，覺得自己穩贏的", ex: "只要照著平常的步調跑，我們勝券在握！" },
+          { word: "不相上下", explain: "實力差不多，分不出誰強誰弱", ex: "兩位跑步選手速度不相上下，幾乎同時踩過終點。" },
+          { word: "盡心盡力", explain: "用盡自己全身力氣去做", ex: "這次的大掃除，大家都盡心盡力把教室擦得亮晶晶。" }
+        ],
+        sentence: {
+          pattern: "【……是……，也是……】",
+          bookOriginal: "這是運動會的壓軸項目，也是目前積分共同領先的五班和六班，爭奪總冠軍的決勝戰。",
+          lifeExample: "媽媽是料理高手，也是我的好朋友。",
+          blocks: ["媽媽", "是", "料理高手", "，也是", "我的好朋友。"],
+          puzzleQuestion: "請拼出生活造句：媽媽（　）料理高手，（　）我的好朋友。",
+          correctOrder: ["媽媽", "是", "料理高手", "也是", "我的好朋友"],
+          options: ["也是", "媽媽", "我的好朋友", "是", "料理高手"]
+        },
+        quiz: [
+          {
+            question: "運動會最後一項大隊接力，是全場最刺激、最後面的表演，我們可以叫它什麼？",
+            options: ["壓軸", "搬運", "扭曲"],
+            answer: 0,
+            explain: "「壓軸」就是排在最後面最精彩的重頭戲喔！"
+          },
+          {
+            question: "小華和小明跑步的速度一樣快，誰也沒有落後，可以怎麼形容？",
+            options: ["心存芥蒂", "不相上下", "拱手讓人"],
+            answer: 1,
+            explain: "實力差不多、分不出高下叫做「不相上下」。"
+          },
+          {
+            question: "小明覺得自己今天準備超級充分，一定能拿第一名，這種感覺是？",
+            options: ["猛然", "勝券在握", "委屈"],
+            answer: 1,
+            explain: "「勝券在握」就是手握著勝利的門票，信心滿滿！"
+          }
+        ]
+      },
+      {
+        id: 2,
+        title: "朱子治家格言選",
+        icon: "📜",
+        desc: "珍惜生活中的每顆米粒、懂得感恩與節儉的生活大智慧！",
+        color: "emerald",
+        vocabularies: [
+          { word: "未雨綢繆", explain: "還沒下雨前先把傘和屋頂準備好", ex: "明天要出門爬山，今天先準備好雨衣就是未雨綢繆。" },
+          { word: "臨渴掘井", explain: "口渴到不行了才急著挖井找水喝", ex: "平時不好好複習，考試前一晚才熬夜看書，就是臨渴掘井。" },
+          { word: "物力維艱", explain: "每一件東西都是大家辛苦做出來的", ex: "飯碗裡的每粒米都是農夫流汗種的，物力維艱不可浪費。" },
+          { word: "半絲半縷", explain: "就算只是一小條線、一小塊布也要珍惜", ex: "身上的衣服得來不易，半絲半縷都要愛惜。" },
+          { word: "瓦缶", explain: "用泥土燒成、粗粗樸素的陶罐", ex: "古代人家裡常用瓦缶來裝乾淨的井水。" },
+          { word: "珍饈", explain: "超好吃、平常很難吃到的美味大餐", ex: "過年時桌上擺滿了珍饈美饌，大家吃得好開心。" },
+          { word: "陶冶", explain: "在好環境裡慢慢把自己變溫和優秀", ex: "聽美妙的音樂可以陶冶我們的心情。" },
+          { word: "施惠", explain: "主動去幫助別人、給人好處", ex: "施惠給別人不要一直記在嘴邊，要真心付出。" },
+          { word: "得意忘形", explain: "高興到尾巴翹起來，忘了分寸", ex: "考試考滿分要謙虛，不要得意忘形嘲笑別人。" },
+          { word: "幸災樂禍", explain: "看到別人生病或倒楣，自己偷偷在旁邊笑", ex: "同學摔倒了要去攙扶，不可以幸災樂禍。" },
+          { word: "凡事留餘地", explain: "做事不要逼太緊，留一點退路給大家", ex: "跟好朋友吵架也要凡事留餘地，未來還能合好。" },
+          { word: "稀粥", explain: "水加比較多、軟軟滑滑的米湯", ex: "生病肚子不舒服時，吃一碗熱呼呼的稀粥最舒服。" },
+          { word: "飯碗", explain: "裝飯的碗，有時也借指工作", ex: "雙手捧好飯碗，一口一口慢慢吃。" },
+          { word: "毋庸", explain: "完全不用、不需要", ex: "這件事大家都很清楚了，毋庸再多做解釋。" },
+          { word: "纏縛", explain: "被繩子或麻煩事緊緊綁住解不開", ex: "鞋帶被小樹枝纏縛住了，要小心解開。" }
+        ],
+        sentence: {
+          pattern: "【與其……，不如……】",
+          bookOriginal: "與其事到臨頭臨渴掘井，不如平時未雨綢繆。",
+          lifeExample: "與其生病吃藥，不如平時多運動。",
+          blocks: ["與其", "生病吃藥", "，不如", "平時多運動。"],
+          puzzleQuestion: "請拼出生活造句：（　）生病吃藥，（　）平時多運動。",
+          correctOrder: ["與其", "生病吃藥", "不如", "平時多運動"],
+          options: ["不如", "與其", "平時多運動", "生病吃藥"]
+        },
+        quiz: [
+          {
+            question: "明天快要颱風天了，今天下午我們先把門窗關好、買好乾糧，這是什麼好習慣？",
+            options: ["未雨綢繆", "幸災樂禍", "稀粥"],
+            answer: 0,
+            explain: "事前做好萬全準備，就叫做「未雨綢繆」。"
+          },
+          {
+            question: "小美看到同學走路不小心踩到水坑跌倒，居然在旁邊拍手哈哈大笑，這樣很不乖的行為叫？",
+            options: ["陶冶", "幸災樂禍", "物力維艱"],
+            answer: 1,
+            explain: "看到別人倒楣自己卻在笑，就是「幸災樂禍」，這樣不友善喔！"
+          },
+          {
+            question: "每一件物品、每一碗飯都是辛苦做出來的，這句成語怎麼說？",
+            options: ["瓦缶", "物力維艱", "飯碗"],
+            answer: 1,
+            explain: "「物力維艱」告訴我們要好好珍惜每一件東西！"
+          }
+        ]
+      },
+      {
+        id: 3,
+        title: "談遇見更好的自己",
+        icon: "🌟",
+        desc: "不害怕犯錯，每天堅持一點點，讓自己變得更厲害更耀眼！",
+        color: "blue",
+        vocabularies: [
+          { word: "卓越", explain: "厲害到大家都豎起大拇指", ex: "他在畫畫比賽中表現卓越，拿到了特優獎！" },
+          { word: "培養", explain: "像照顧種子一樣，慢慢練習養成習慣", ex: "每天睡前閱讀半小時，可以培養專注的好習慣。" },
+          { word: "別出心裁", explain: "想出跟別人完全不一樣的特別點子", ex: "這張母親節卡片造型別出心裁，媽媽好喜歡。" },
+          { word: "瑣事", explain: "微不足道、生活裡零零碎碎的小事", ex: "不要為了生活裡的小瑣事常常生氣發脾氣。" },
+          { word: "伯仲之間", explain: "兩個人實力差一瞇瞇，難分高下", ex: "他們兩個人的圍棋技術在伯仲之間，比了好久。" },
+          { word: "耕耘", explain: "流著汗辛苦付出與努力", ex: "一分耕耘，一分收穫，有努力才會有好成績。" },
+          { word: "賺取", explain: "靠自己的力氣或智慧換得成果", ex: "長大後我們都要靠雙手賺取生活費。" },
+          { word: "異口同聲", explain: "大家好像說好一樣，同一秒說出一樣的話", ex: "老師問想不想去動物園，大家異口同聲喊「想！」" },
+          { word: "惋惜", explain: "覺得好可惜、差一點就成功了", ex: "最後一顆球只差幾公分就進籃框，大家都很惋惜。" },
+          { word: "欠缺", explain: "還少了一樣東西、不夠充足", ex: "我的積木城堡還欠缺幾塊藍色的屋頂零件。" },
+          { word: "砥礪", explain: "互相打氣、磨練讓彼此更進步", ex: "好朋友要互相砥礪，一起變得很厲害。" },
+          { word: "驕傲自滿", explain: "覺得自己最棒，看不起別人", ex: "就算第一名也不要驕傲自滿，還要繼續加油。" },
+          { word: "茁壯", explain: "像小樹苗咕嚕咕嚕喝飽水慢慢長大", ex: "在老師和家人的呵護下，小朋友快樂地茁壯成長。" },
+          { word: "持之以恆", explain: "不放棄，每天都堅持做同一件事", ex: "學跳繩只要持之以恆，一定能跳破一百下！" },
+          { word: "精益求精", explain: "已經很好了，還要變得更好更棒", ex: "師傅做麵包精益求精，每天都在研發更美味的配方。" },
+          { word: "日積月累", explain: "每天存一點點進步，久了就變成大寶藏", ex: "每天背一個單字，日積月累就能學會很多詞彙。" },
+          { word: "隔靴搔癢", explain: "隔著厚厚鞋子抓癢，完全抓不到重點", ex: "你的回答完全沒講到關鍵，好像隔靴搔癢一樣。" }
+        ],
+        sentence: {
+          pattern: "【不是……，而是……】",
+          bookOriginal: "姐姐買這本書，不是因為別人推薦，而是內容符合自己的興趣。",
+          lifeExample: "我流眼淚，不是因為哭鬧，而是眼睛進沙子了。",
+          blocks: ["我流眼淚，", "不是", "因為哭鬧", "，而是", "眼睛進沙子了。"],
+          puzzleQuestion: "請拼出生活造句：我流眼淚，（　）因為哭鬧，（　）眼睛進沙子了。",
+          correctOrder: ["不是", "因為哭鬧", "而是", "眼睛進沙子了"],
+          options: ["而是", "不是", "眼睛進沙子了", "因為哭鬧"]
+        },
+        quiz: [
+          {
+            question: "小明每天都堅持跳繩十分鐘，從不偷懶，久而久之身體變得很強壯，這叫？",
+            options: ["持之以恆", "隔靴搔癢", "瑣事"],
+            answer: 0,
+            explain: "「持之以恆」就是堅持做下去不放棄！"
+          },
+          {
+            question: "全班同學不約而同，同一秒大聲喊出：「老師早安！」，這可以用哪個成語？",
+            options: ["耕耘", "異口同聲", "欠缺"],
+            answer: 1,
+            explain: "大家嘴巴說出同樣的話，叫做「異口同聲」。"
+          },
+          {
+            question: "已經考了 98 分，但小華還是想把最後那題錯的搞懂，追求更完美的進步，這精神是？",
+            options: ["驕傲自滿", "精益求精", "惋惜"],
+            answer: 1,
+            explain: "「精益求精」代表好還要更好！"
+          }
+        ]
+      },
+      {
+        id: 4,
+        title: "臺灣美食詩選",
+        icon: "🍜",
+        desc: "聞到香氣撲鼻的在地料理，把餐桌上的詩意變成好吃的字詞！",
+        color: "orange",
+        vocabularies: [
+          { word: "一言九鼎", explain: "說話很有份量，說出口就一定會做到", ex: "班長一言九鼎，答應要幫大家找球具就一定會做到。" },
+          { word: "颳風", explain: "大風呼呼呼地吹過來", ex: "外面正在颳風下雨，出門一定要把傘拿穩。" },
+          { word: "廚房", explain: "媽媽或廚師煮飯做香噴噴料理的地方", ex: "一走進廚房，就聞到滷肉的迷人香味。" },
+          { word: "淋濕", explain: "全身被大雨或水淋得濕答答", ex: "放學突然下大雨，沒帶傘的同學衣服都被淋濕了。" },
+          { word: "晒乾", explain: "把濕衣服拿到太陽底下曬到香噴噴乾爽", ex: "洗好的被單被大太陽晒乾後，聞起來好舒服。" },
+          { word: "竹筍", explain: "春天從土裡冒出來的嫩綠小尖角筍子", ex: "排骨竹筍湯清甜可口，脆脆的很好吃。" },
+          { word: "目不識丁", explain: "連最簡單的「丁」字都不認識，指沒讀過書", ex: "在現代社會大家都有受教育，很少人目不識丁了。" },
+          { word: "醃製", explain: "放鹽、糖或醬汁讓食物變入味", ex: "阿嬤正在醃製泡菜，酸酸辣辣非常下飯。" },
+          { word: "攪拌", explain: "拿湯匙在碗裡一直繞圈圈混勻", ex: "做蛋糕要先把雞蛋和麵粉用力攪拌均勻。" },
+          { word: "油炸", explain: "把東西丟進滾燙的熱油裡炸得酥脆金黃", ex: "油炸的雞塊雖然很香很酥，但不能吃太多喔。" },
+          { word: "晶瑩透亮", explain: "像玻璃或寶石一樣乾淨發亮", ex: "肉圓的外皮晶瑩透亮，裡面的肉餡清晰可見。" },
+          { word: "饗宴", explain: "超級豐盛又讓人開心的豪華大餐", ex: "今天這頓晚餐真是一場美味的味蕾饗宴！" },
+          { word: "彰顯", explain: "把它亮出來，讓大家都看得清清楚楚", ex: "這道料理彰顯了臺灣傳統夜市的特色。" },
+          { word: "山珍海味", explain: "山上的野味和海裡的鮮魚，各種頂級美食", ex: "桌上擺滿了山珍海味，大家都吃得肚子圓滾滾。" },
+          { word: "華燈初上", explain: "天色剛黑下來，路燈和招牌一盞盞亮起", ex: "傍晚華燈初上，夜市的小吃攤開始熱鬧起來了。" }
+        ],
+        sentence: {
+          pattern: "【看似……，其實……】",
+          bookOriginal: "這道麻婆豆腐看似非常辣，其實入口後帶著微微的甘甜。",
+          lifeExample: "這碗麵看似很辣，其實一點都不辣。",
+          blocks: ["這碗麵", "看似", "很辣", "，其實", "一點都不辣。"],
+          puzzleQuestion: "請拼出生活造句：這碗麵（　）很辣，（　）一點都不辣。",
+          correctOrder: ["看似", "很辣", "其實", "一點都不辣"],
+          options: ["其實", "看似", "一點都不辣", "很辣"]
+        },
+        quiz: [
+          {
+            question: "天色剛變暗，街上的路燈、夜市的小招牌一盞一盞亮起來，這個時間點叫什麼？",
+            options: ["颳風", "華燈初上", "攪拌"],
+            answer: 1,
+            explain: "黃昏入夜路燈亮起來時，就叫「華燈初上」。"
+          },
+          {
+            question: "熱騰騰的肉圓外皮透著光，像透明寶石一樣發光，可以用什麼詞語形容？",
+            options: ["晶瑩透亮", "目不識丁", "醃製"],
+            answer: 0,
+            explain: "乾淨、透明又亮晶晶的樣子就是「晶瑩透亮」。"
+          },
+          {
+            question: "桌上有鮮蝦、烤魚、燉雞肉等各種豪華頂級的大餐，這叫做？",
+            options: ["竹筍", "山珍海味", "晒乾"],
+            answer: 1,
+            explain: "「山珍海味」就是集合了山產海鮮的極致大餐！"
+          }
+        ]
+      },
+      {
+        id: 5,
+        title: "最好的味覺禮物",
+        icon: "🥞",
+        desc: "自己親手動手做料理，感受純粹天然的甜美滋味！",
+        color: "rose",
+        vocabularies: [
+          { word: "迫不及待", explain: "等不及啦！好想立刻馬上衝去做", ex: "一拿到新買的故事書，我就迫不及待拆開來看。" },
+          { word: "誘人", explain: "香氣或外觀太迷人，讓人直流口水想咬一口", ex: "剛出爐的烤麵包散發出誘人的奶油香。" },
+          { word: "按部就班", explain: "按照第一步、第二步規律做，不偷跑", ex: "只要按部就班照著食譜做，一定能烤出鬆餅。" },
+          { word: "粉身碎骨", explain: "摔得碎成一小片一小片", ex: "杯子掉到磁磚地板上，摔得粉身碎骨。" },
+          { word: "純粹", explain: "乾乾淨淨，沒有摻雜任何雜質", ex: "這瓶蘋果汁是用純粹的水果鮮榨，不加糖水。" },
+          { word: "削皮", explain: "拿削皮刀把蘋果或蔬菜的外皮削掉", ex: "媽媽拿水果刀熟練地幫蘋果削皮。" },
+          { word: "泡沫", explain: "像肥皂水吹出來那種一顆顆小泡泡", ex: "洗手時要搓出多多的白色泡沫才能把手洗乾淨。" },
+          { word: "嗅覺", explain: "用鼻子聞味道的感覺能力", ex: "狗狗的嗅覺非常靈敏，遠遠就能聞到骨頭的氣味。" },
+          { word: "房舍", explain: "一間一間蓋好的房屋建築", ex: "鄉下的小溪旁邊，座落著幾間古老的農家房舍。" },
+          { word: "熬夜", explain: "該睡覺的時候不睡，硬撐到半夜", ex: "熬夜打電動很傷身體，小朋友要早早睡覺。" },
+          { word: "砂石", explain: "細小的沙子和小石子", ex: "工地上堆滿了蓋房子用的水泥和砂石。" },
+          { word: "混合", explain: "把兩種以上的東西攪在一起", ex: "把藍色顏料和黃色顏料混合，就會變成綠色。" },
+          { word: "焦糖", explain: "把糖慢慢加熱炒出焦香迷人的金棕色糖漿", ex: "布丁上淋著甜甜苦苦的焦糖醬，特別好吃。" },
+          { word: "舀水", explain: "拿水勺把水盛起來", ex: "小熊拿著木勺子在水桶裡舀水洗臉。" },
+          { word: "鐵勺", explain: "鐵做的大長柄湯勺", ex: "廚師手握大鐵勺在鍋子裡翻炒著熱湯。" },
+          { word: "熄滅", explain: "火滅了或燈光關掉了", ex: "睡覺前記得把房間的電燈全部熄滅。" },
+          { word: "飛黃騰達", explain: "突然升官賺大錢，事業爬得非常高", ex: "他靠著努力開了連鎖店，事業飛黃騰達。" },
+          { word: "流淌", explain: "液體像小溪一樣順順地流過來", ex: "清涼的泉水從山壁上緩緩流淌下來。" },
+          { word: "充沛", explain: "像水庫滿水位一樣，力氣或水量超級充足", ex: "睡飽了覺，今天早上整個人精神充沛！" },
+          { word: "舔拭", explain: "伸出舌頭輕輕舔一舔", ex: "小貓咪正在用舌頭舔拭自己的小肉掌。" }
+        ],
+        sentence: {
+          pattern: "【不只……，更是……】",
+          bookOriginal: "這不只是一杯果汁，更是用心體會自己動手做料理的樂趣。",
+          lifeExample: "這杯果汁不只甜甜的，更是我們親手做的成果。",
+          blocks: ["這杯果汁", "不只", "甜甜的", "，更是", "我們親手做的成果。"],
+          puzzleQuestion: "請拼出生活造句：這杯果汁（　）甜甜的，（　）我們親手做的成果。",
+          correctOrder: ["不只", "甜甜的", "更是", "我們親手做的成果"],
+          options: ["更是", "不只", "我們親手做的成果", "甜甜的"]
+        },
+        quiz: [
+          {
+            question: "烤箱一叮咚，蛋糕出爐飄出濃濃香味，小貓聞到口水都流下來，迫切想咬一口，這叫什麼？",
+            options: ["誘人", "房舍", "砂石"],
+            answer: 0,
+            explain: "「誘人」就是吸引人到讓人受不了想接近！"
+          },
+          {
+            question: "做實驗或做蛋糕，不能亂跳步驟，必須第一步、第二步按著規矩來，叫做？",
+            options: ["迫不及待", "按部就班", "粉身碎骨"],
+            answer: 1,
+            explain: "照著順序規規矩矩來做，就是「按部就班」。"
+          },
+          {
+            question: "晚上睡飽飽，早上起來全身力氣滿滿、神清氣爽，這叫體力什麼？",
+            options: ["充沛", "流淌", "熄滅"],
+            answer: 0,
+            explain: "「充沛」代表非常充足飽滿的狀態！"
+          }
+        ]
+      },
+      {
+        id: 6,
+        title: "珍珠奶茶",
+        icon: "🧋",
+        desc: "從臺灣巷弄紅遍全世界的甜美奇蹟，感受黑糖與粉圓的魅力！",
+        color: "purple",
+        vocabularies: [
+          { word: "風靡", explain: "像一陣旋風掃過，全村全校大家都超瘋迷", ex: "這款新出的卡通公仔風靡了全校小朋友！" },
+          { word: "嫁接", explain: "把這棵植物的樹枝接到另一棵樹上一起生長", ex: "農夫把好吃的芒果樹枝嫁接在強壯的樹幹上。" },
+          { word: "贊助", explain: "出錢或出東西幫助活動辦成功", ex: "早餐店老闆熱心贊助了我們運動會的小旗子。" },
+          { word: "相干", explain: "有關係、牽連在一起", ex: "這件事情跟他完全不相干，不要冤枉他。" },
+          { word: "烹飪", explain: "洗切煮炒，做菜下廚的過程", ex: "假日時爸爸喜歡在廚房烹飪好吃的義大利麵。" },
+          { word: "番薯", explain: "甜甜香香的地瓜", ex: "冬天在路邊買一顆熱騰騰的烤番薯，吃起來真暖和。" },
+          { word: "歲末", explain: "一年快要結束的十二月冬天", ex: "每年歲末，學校都會舉辦歡樂的感恩跳蚤市場。" },
+          { word: "增添", explain: "再加進去一點點，讓它更多", ex: "客廳掛上紅燈籠，增添了許多新年的喜氣。" },
+          { word: "擴展", explain: "把範圍變大、向外拉開", ex: "多看世界地圖可以擴展我們的國際視野。" },
+          { word: "聯袂", explain: "大家手牽著手、一起結伴前往", ex: "今天兩位班長聯袂上台替全班領獎。" },
+          { word: "濃稠", explain: "黏黏稠稠像芝麻糊一樣不容易流動", ex: "這鍋咖哩醬煮得非常濃稠入味，好香啊！" },
+          { word: "衡量", explain: "心裡秤秤看哪一個比較重要或划算", ex: "買玩具前要好好衡量自己的零用錢夠不夠。" },
+          { word: "徜徉", explain: "心情很輕鬆自由地散步或走動", ex: "在微風徐徐的草地上徜徉，整個人放鬆極了。" },
+          { word: "撫摸", explain: "伸出手輕輕柔柔地摸摸看", ex: "我輕輕撫摸小倉鼠毛茸茸的背，它舒服地瞇上眼睛。" },
+          { word: "菩薩", explain: "慈悲善良、照顧守護大家的神明", ex: "奶奶每天都會雙手合十，祈求菩薩保佑全家平安。" },
+          { word: "乳酪", explain: "牛奶凝固濃縮做成的起司乳品", ex: "披薩上鋪滿了金黃色的乳酪絲，拉起來還會牽絲呢！" },
+          { word: "圓潤", explain: "圓滾滾又光滑飽滿，沒有尖角", ex: "這顆剛煮好的粉圓黑亮圓潤，咬起來Ｑ彈極了。" },
+          { word: "包容", explain: "心胸寬大，原諒接納別人的缺點", ex: "朋友之間要互相包容，不要動不動就發脾氣。" },
+          { word: "膨脹", explain: "像氣球吹氣一樣，體積變大變鼓", ex: "麵糰發酵後慢慢膨脹，變成原來的兩倍大。" }
+        ],
+        sentence: {
+          pattern: "【不僅……，更……】",
+          bookOriginal: "珍珠奶茶不僅深受國內民眾喜愛，更風靡了全世界，成為臺灣飲食文化的特有符號。",
+          lifeExample: "珍珠奶茶不僅很好喝，更紅到了國外。",
+          blocks: ["珍珠奶茶", "不僅", "很好喝", "，更", "紅到了國外。"],
+          puzzleQuestion: "請拼出生活造句：珍珠奶茶（　）很好喝，（　）紅到了國外。",
+          correctOrder: ["不僅", "很好喝", "更", "紅到了國外"],
+          options: ["更", "不僅", "紅到了國外", "很好喝"]
+        },
+        quiz: [
+          {
+            question: "某首歌一放出來，全世界的人都在學著跳，大街小巷都在唱，這可以用哪個詞？",
+            options: ["濃稠", "風靡", "撫摸"],
+            answer: 1,
+            explain: "「風靡」就像旋風一樣讓大家都在追流行！"
+          },
+          {
+            question: "煮得剛剛好的黑糖粉圓，看起來圓滾滾、光滑飽滿，咬下去很Ｑ，叫作？",
+            options: ["圓潤", "相干", "嫁接"],
+            answer: 0,
+            explain: "飽滿圓滑又漂亮就叫「圓潤」。"
+          },
+          {
+            question: "煮咖哩時把湯汁收乾，變得像芝麻糊一樣黏黏厚厚的，不容易晃動，這是？",
+            options: ["膨脹", "濃稠", "徜徉"],
+            answer: 1,
+            explain: "「濃稠」表示質地濃密黏滑。"
+          }
+        ]
+      }
+    ];
+
+    /* ==========================================================================
+       2. 應用程式全域狀態
+       ========================================================================== */
+    let currentLessonId = 1;
+    let currentTab = 'vocab';
+    let totalStars = 0;
+    let currentQuizIndex = 0;
+    let quizScoreCurrentLesson = 0;
+    let fontSizeMultiplier = 1; // 放大比例
+    let userSentencePicks = []; // 句型拼圖選擇暫存
+    let allFlipped = false;
+
+    // 音效合成器 (Web Audio API)
+    let audioCtx = null;
+    function playTone(freq, type = 'sine', duration = 0.15) {
+      try {
+        if (!audioCtx) {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.warn("音效播放失敗", e);
+      }
+    }
+
+    function playSuccessSound() {
+      playTone(523.25, 'triangle', 0.12); // C5
+      setTimeout(() => playTone(659.25, 'triangle', 0.12), 100); // E5
+      setTimeout(() => playTone(783.99, 'triangle', 0.25), 200); // G5
+    }
+
+    function playEncourageSound() {
+      playTone(392.00, 'sine', 0.15);
+      setTimeout(() => playTone(329.63, 'sine', 0.2), 150);
+    }
+
+    /* ==========================================================================
+       3. 語音朗讀合成 (Web Speech API)
+       ========================================================================== */
+    function speakText(text) {
+      if (!('speechSynthesis' in window)) {
+        return;
+      }
+      window.speechSynthesis.cancel(); // 停止先前的朗讀
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'zh-TW';
+      utter.rate = 0.85; // 特教友善：語速放緩，咬字清楚
+      utter.pitch = 1.05; // 稍稍親切的高音頻
+      window.speechSynthesis.speak(utter);
+    }
+
+    function stopSpeech() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    }
+
+    /* ==========================================================================
+       4. 畫面渲染與切換
+       ========================================================================== */
+    // 初始化課程按鈕清單
+    function renderLessonTabs() {
+      const container = document.getElementById('lesson-tabs');
+      container.innerHTML = '';
+      lessonsData.forEach(l => {
+        const isActive = l.id === currentLessonId;
+        const btn = document.createElement('button');
+        btn.className = `shrink-0 px-4 py-2.5 rounded-2xl font-bold flex items-center gap-2 border-2 transition-all ${
+          isActive 
+            ? 'bg-amber-500 border-amber-600 text-slate-900 shadow-md scale-105' 
+            : 'bg-white border-amber-200 text-slate-700 hover:bg-amber-100/70'
+        }`;
+        btn.onclick = () => switchLesson(l.id);
+        btn.innerHTML = `
+          <span class="text-xl">${l.icon}</span>
+          <span class="text-sm sm:text-base">第${l.id}課 ${l.title}</span>
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    // 切換課程
+    function switchLesson(id) {
+      stopSpeech();
+      currentLessonId = id;
+      currentQuizIndex = 0;
+      quizScoreCurrentLesson = 0;
+      allFlipped = false;
+      userSentencePicks = [];
+
+      renderLessonTabs();
+      renderLessonHeader();
+      renderVocabularies();
+      renderSentenceSection();
+      renderQuizQuestion();
+
+      // 切換回預設詞語頁面或保持原標籤
+      switchTab(currentTab);
+    }
+
+    // 渲染課次抬頭資訊
+    function renderLessonHeader() {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      document.getElementById('lesson-icon').innerText = lesson.icon;
+      document.getElementById('lesson-badge').innerText = `第 ${lesson.id} 課`;
+      document.getElementById('lesson-title').innerText = lesson.title;
+      document.getElementById('lesson-desc').innerText = lesson.desc;
+      document.getElementById('vocab-count-badge').innerText = `${lesson.vocabularies.length} 個詞語`;
+    }
+
+    // 朗讀該課全部詞語
+    function readCurrentLessonWords() {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      const words = lesson.vocabularies.map(v => v.word).join('、');
+      speakText(`第 ${lesson.id} 課 ${lesson.title} 的詞語有：${words}`);
+    }
+
+    // 切換模組標籤頁
+    function switchTab(tab) {
+      stopSpeech();
+      currentTab = tab;
+      
+      const tabVocab = document.getElementById('tab-vocab');
+      const tabSentence = document.getElementById('tab-sentence');
+      const tabQuiz = document.getElementById('tab-quiz');
+
+      const modVocab = document.getElementById('module-vocab');
+      const modSentence = document.getElementById('module-sentence');
+      const modQuiz = document.getElementById('module-quiz');
+
+      // 重設樣式
+      [tabVocab, tabSentence, tabQuiz].forEach(btn => {
+        btn.className = 'tab-btn pb-3 px-3 text-slate-400 hover:text-slate-600 border-b-4 border-transparent flex items-center gap-2 font-black';
+      });
+
+      modVocab.classList.add('hidden');
+      modSentence.classList.add('hidden');
+      modQuiz.classList.add('hidden');
+
+      if (tab === 'vocab') {
+        tabVocab.className = 'tab-btn pb-3 px-3 text-amber-600 border-b-4 border-amber-500 flex items-center gap-2 font-black';
+        modVocab.classList.remove('hidden');
+      } else if (tab === 'sentence') {
+        tabSentence.className = 'tab-btn pb-3 px-3 text-emerald-600 border-b-4 border-emerald-500 flex items-center gap-2 font-black';
+        modSentence.classList.remove('hidden');
+      } else if (tab === 'quiz') {
+        tabQuiz.className = 'tab-btn pb-3 px-3 text-blue-600 border-b-4 border-blue-500 flex items-center gap-2 font-black';
+        modQuiz.classList.remove('hidden');
+        renderQuizQuestion();
+      }
+    }
+
+    /* ==========================================================================
+       5. 模組 A：詞語探險魔法卡片
+       ========================================================================== */
+    function renderVocabularies() {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      const grid = document.getElementById('vocab-grid');
+      grid.innerHTML = '';
+
+      lesson.vocabularies.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'relative w-full h-56 perspective-1000 cursor-pointer select-none';
+        card.id = `card-wrap-${index}`;
+
+        card.innerHTML = `
+          <div id="card-inner-${index}" class="relative w-full h-full transform-style-3d transition-transform duration-500 rounded-3xl shadow-sm border-2 border-amber-200">
+            <!-- 正面：詞語主體 -->
+            <div class="absolute inset-0 w-full h-full backface-hidden bg-white rounded-3xl p-5 flex flex-col justify-between items-center text-center">
+              <div class="w-full flex justify-between items-center text-xs font-bold text-amber-500">
+                <span class="bg-amber-100 px-2 py-0.5 rounded-md">詞語 #${index + 1}</span>
+                <button onclick="event.stopPropagation(); speakWordAndExplain('${item.word}', '${item.explain}')" class="w-9 h-9 rounded-full bg-amber-50 hover:bg-amber-200 text-amber-700 flex items-center justify-center transition-all" title="點我朗讀">
+                  <i class="fa-solid fa-volume-high text-sm"></i>
+                </button>
+              </div>
+
+              <!-- 詞語大字 -->
+              <div class="my-auto">
+                <span class="text-3xl sm:text-4xl font-black text-slate-800 tracking-wider hover:text-amber-600 transition-colors">
+                  ${item.word}
+                </span>
+              </div>
+
+              <div class="w-full text-xs text-slate-400 flex items-center justify-center gap-1 font-medium">
+                <i class="fa-solid fa-hand-pointer text-amber-400"></i>
+                點擊看白話解釋
+              </div>
+            </div>
+
+            <!-- 反面：接地氣口語白話解釋與例句 -->
+            <div class="absolute inset-0 w-full h-full backface-hidden rotate-y-180 bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-4 sm:p-5 flex flex-col justify-between border-2 border-amber-400">
+              <div class="flex justify-between items-center">
+                <span class="text-base font-black text-amber-800">${item.word}</span>
+                <button onclick="event.stopPropagation(); speakWordAndExplain('${item.word}', '${item.explain}。例句：${item.ex}')" class="w-8 h-8 rounded-full bg-white hover:bg-amber-200 text-amber-700 flex items-center justify-center shadow-xs">
+                  <i class="fa-solid fa-volume-high text-xs"></i>
+                </button>
+              </div>
+
+              <!-- 口語解釋 -->
+              <div class="my-auto text-left">
+                <div class="text-xs font-bold text-amber-600 mb-1 flex items-center gap-1">
+                  <span>💡 口語話意思：</span>
+                </div>
+                <div class="text-base sm:text-lg font-bold text-slate-800 leading-snug">
+                  ${item.explain}
+                </div>
+                <div class="mt-2 text-xs text-slate-600 bg-white/80 p-2 rounded-xl border border-amber-200/60">
+                  <span class="font-bold text-amber-700">生活一句話：</span>${item.ex}
+                </div>
+              </div>
+
+              <div class="text-[11px] text-slate-400 text-center font-medium">
+                再點一下翻回正面
+              </div>
+            </div>
+          </div>
+        `;
+
+        card.onclick = () => toggleCardFlip(index);
+        grid.appendChild(card);
+      });
+    }
+
+    function toggleCardFlip(index) {
+      playTone(440, 'sine', 0.08);
+      const inner = document.getElementById(`card-inner-${index}`);
+      if (inner.classList.contains('rotate-y-180')) {
+        inner.classList.remove('rotate-y-180');
+      } else {
+        inner.classList.add('rotate-y-180');
+      }
+    }
+
+    function flipAllCards() {
+      allFlipped = !allFlipped;
+      playTone(allFlipped ? 523 : 392, 'sine', 0.1);
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      lesson.vocabularies.forEach((_, idx) => {
+        const inner = document.getElementById(`card-inner-${idx}`);
+        if (allFlipped) {
+          inner.classList.add('rotate-y-180');
+        } else {
+          inner.classList.remove('rotate-y-180');
+        }
+      });
+    }
+
+    function speakWordAndExplain(word, explain) {
+      speakText(`${word}。意思就是：${explain}`);
+    }
+
+    /* ==========================================================================
+       6. 模組 B：句型積木區
+       ========================================================================== */
+    function renderSentenceSection() {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      const container = document.getElementById('sentence-container');
+      const s = lesson.sentence;
+
+      container.innerHTML = `
+        <!-- 句型教學卡片 -->
+        <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-emerald-100">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="bg-emerald-100 text-emerald-800 text-xs sm:text-sm font-black px-3 py-1 rounded-full">核心句型</span>
+            <span class="text-2xl font-black text-emerald-700">${s.pattern}</span>
+            <button onclick="speakText('${s.pattern.replace(/……/g, '空白')}')" class="ml-2 w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 hover:bg-emerald-100 flex items-center justify-center">
+              <i class="fa-solid fa-volume-high text-xs"></i>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <!-- 課本原句 -->
+            <div class="bg-slate-50 border-2 border-slate-200 rounded-2xl p-4">
+              <div class="flex items-center justify-between text-xs font-bold text-slate-500 mb-2">
+                <span>📖 課本原句</span>
+                <button onclick="speakText('${s.bookOriginal}')" class="text-slate-600 hover:text-emerald-600">
+                  <i class="fa-solid fa-volume-high"></i> 聽原句
+                </button>
+              </div>
+              <p class="text-base sm:text-lg text-slate-800 font-medium leading-relaxed">
+                ${highlightSentence(s.bookOriginal, s.pattern)}
+              </p>
+            </div>
+
+            <!-- 生活化造句 -->
+            <div class="bg-emerald-50/60 border-2 border-emerald-200 rounded-2xl p-4">
+              <div class="flex items-center justify-between text-xs font-bold text-emerald-700 mb-2">
+                <span>🌱 生活好懂範例</span>
+                <button onclick="speakText('${s.lifeExample}')" class="text-emerald-700 hover:text-emerald-800">
+                  <i class="fa-solid fa-volume-high"></i> 聽範例
+                </button>
+              </div>
+              <p class="text-base sm:text-lg text-emerald-950 font-bold leading-relaxed">
+                ${highlightSentence(s.lifeExample, s.pattern)}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 句型積木拼圖互動區 -->
+        <div class="bg-white rounded-3xl p-6 sm:p-7 shadow-sm border border-slate-100">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                <span>🧩 句子積木排排看</span>
+              </h3>
+              <p class="text-xs sm:text-sm text-slate-500 mt-0.5">${s.puzzleQuestion}</p>
+            </div>
+            <button onclick="resetPuzzle()" class="text-xs bg-slate-100 text-slate-600 font-bold px-3 py-1.5 rounded-xl hover:bg-slate-200">
+              重組
+            </button>
+          </div>
+
+          <!-- 拼裝放置槽 -->
+          <div class="min-h-[80px] bg-slate-50 border-2 border-dashed border-slate-300 rounded-2xl p-3 flex flex-wrap items-center gap-2 mb-6" id="puzzle-dropzone">
+            <!-- 玩家點選的積木會出現在這裡 -->
+            <span id="dropzone-placeholder" class="text-slate-400 text-sm font-medium">請點選下方彩色積木，按順序拼成一句完整的話...</span>
+          </div>
+
+          <!-- 備選積木庫 -->
+          <div class="text-xs font-bold text-slate-400 mb-2">點擊積木放入上方：</div>
+          <div class="flex flex-wrap gap-2.5" id="puzzle-pool">
+            <!-- 積木選項由 JS 動態生成 -->
+          </div>
+
+          <!-- 檢查按鈕與反饋 -->
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+            <div id="puzzle-feedback" class="text-base font-bold text-slate-600"></div>
+            <button onclick="checkPuzzleAnswer()" class="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white font-black rounded-2xl shadow-md active:scale-95 transition-all">
+              確認答案！
+            </button>
+          </div>
+        </div>
+      `;
+
+      initPuzzleBlocks();
+    }
+
+    // 高亮句型關鍵詞（如：是、也是、與其、不如）
+    function highlightSentence(sentence, pattern) {
+      let result = sentence;
+      const cleanPattern = pattern.replace(/[【】]/g, '');
+      const parts = cleanPattern.split('……').map(p => p.trim()).filter(p => p.length > 0);
+      parts.forEach(part => {
+        const reg = new RegExp(part, 'g');
+        result = result.replace(reg, `<span class="bg-amber-200 text-amber-900 px-1 py-0.5 rounded font-black">${part}</span>`);
+      });
+      return result;
+    }
+
+    // 積木重組初始化
+    function initPuzzleBlocks() {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      userSentencePicks = [];
+      const pool = document.getElementById('puzzle-pool');
+      const dropzone = document.getElementById('puzzle-dropzone');
+      const placeholder = document.getElementById('dropzone-placeholder');
+      const feedback = document.getElementById('puzzle-feedback');
+
+      pool.innerHTML = '';
+      dropzone.innerHTML = '';
+      dropzone.appendChild(placeholder);
+      placeholder.style.display = 'block';
+      feedback.innerHTML = '';
+
+      // 隨機打亂積木
+      const shuffled = [...lesson.sentence.options].sort(() => Math.random() - 0.5);
+
+      shuffled.forEach((text, i) => {
+        const btn = document.createElement('button');
+        btn.id = `block-opt-${i}`;
+        btn.className = 'px-4 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-900 border-2 border-amber-300 font-black rounded-2xl text-base shadow-xs active:scale-95 transition-all';
+        btn.innerText = text;
+        btn.onclick = () => pickBlock(text, btn);
+        pool.appendChild(btn);
+      });
+    }
+
+    function pickBlock(text, btnElement) {
+      playTone(500, 'triangle', 0.1);
+      userSentencePicks.push(text);
+      btnElement.style.visibility = 'hidden';
+
+      const dropzone = document.getElementById('puzzle-dropzone');
+      const placeholder = document.getElementById('dropzone-placeholder');
+      placeholder.style.display = 'none';
+
+      const placedChip = document.createElement('div');
+      placedChip.className = 'px-4 py-2 bg-emerald-500 text-white font-black rounded-2xl shadow-sm text-base flex items-center gap-2 animate-star';
+      placedChip.innerHTML = `
+        <span>${text}</span>
+        <i class="fa-solid fa-circle-xmark text-xs opacity-70 hover:opacity-100 cursor-pointer"></i>
+      `;
+
+      placedChip.onclick = () => {
+        // 點選移除積木
+        playTone(350, 'sine', 0.08);
+        const idx = userSentencePicks.lastIndexOf(text);
+        if (idx !== -1) userSentencePicks.splice(idx, 1);
+        btnElement.style.visibility = 'visible';
+        placedChip.remove();
+        if (userSentencePicks.length === 0) {
+          placeholder.style.display = 'block';
+        }
+      };
+
+      dropzone.appendChild(placedChip);
+    }
+
+    function resetPuzzle() {
+      initPuzzleBlocks();
+    }
+
+    function checkPuzzleAnswer() {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      const target = lesson.sentence.correctOrder.join('');
+      const user = userSentencePicks.join('');
+      const feedback = document.getElementById('puzzle-feedback');
+
+      if (userSentencePicks.length === 0) {
+        feedback.innerHTML = `<span class="text-rose-500">先點選積木排排看喔！</span>`;
+        return;
+      }
+
+      if (user === target) {
+        playSuccessSound();
+        addStars(1);
+        feedback.innerHTML = `
+          <span class="text-emerald-600 font-black flex items-center gap-1.5 animate-bounce">
+            <i class="fa-solid fa-circle-check text-xl"></i> 太棒了！拼得完全正確！獲得 1 顆星星 ⭐
+          </span>
+        `;
+        speakText("太棒了！句型積木拼得完全正確！");
+      } else {
+        playEncourageSound();
+        feedback.innerHTML = `
+          <span class="text-amber-600 font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-info text-xl"></i> 還差一點點喔！再試著調整一下順序看看！
+          </span>
+        `;
+      }
+    }
+
+    /* ==========================================================================
+       7. 模組 C：星星小挑戰（快問快答）
+       ========================================================================== */
+    function renderQuizQuestion() {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      const q = lesson.quiz[currentQuizIndex];
+      const box = document.getElementById('quiz-box');
+      const progressText = document.getElementById('quiz-progress-text');
+      const progressBar = document.getElementById('quiz-progress-bar');
+      const feedback = document.getElementById('quiz-feedback');
+      const nextBtn = document.getElementById('quiz-next-btn');
+
+      // 更新進度條
+      progressText.innerText = `第 ${currentQuizIndex + 1} / ${lesson.quiz.length} 題`;
+      progressBar.style.width = `${((currentQuizIndex + 1) / lesson.quiz.length) * 100}%`;
+
+      feedback.className = 'mt-6 p-4 rounded-2xl hidden flex items-center gap-3';
+      nextBtn.classList.add('hidden');
+
+      box.innerHTML = `
+        <div class="mb-6">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-black text-xl shrink-0 mt-1">
+              Q
+            </div>
+            <div>
+              <p class="text-lg sm:text-2xl font-black text-slate-800 leading-relaxed">
+                ${q.question}
+              </p>
+              <button onclick="speakText('${q.question}')" class="mt-2 text-xs text-amber-600 font-bold hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-volume-high"></i> 朗讀題目
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-6" id="quiz-options-container">
+          <!-- 題目選項按鈕 -->
+        </div>
+      `;
+
+      const optContainer = document.getElementById('quiz-options-container');
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement('button');
+        btn.id = `quiz-opt-btn-${idx}`;
+        btn.className = 'py-4 px-4 bg-slate-50 hover:bg-amber-50 border-2 border-slate-200 hover:border-amber-400 rounded-2xl text-lg sm:text-xl font-black text-slate-800 shadow-sm active:scale-95 transition-all text-center';
+        btn.innerText = opt;
+        btn.onclick = () => handleQuizAnswer(idx, q.answer, q.explain);
+        optContainer.appendChild(btn);
+      });
+    }
+
+    function handleQuizAnswer(selectedIdx, correctIdx, explanation) {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      const feedback = document.getElementById('quiz-feedback');
+      const nextBtn = document.getElementById('quiz-next-btn');
+      
+      // 禁用所有按鈕防止重複點擊
+      lesson.quiz[currentQuizIndex].options.forEach((_, i) => {
+        const b = document.getElementById(`quiz-opt-btn-${i}`);
+        b.disabled = true;
+      });
+
+      const selectedBtn = document.getElementById(`quiz-opt-btn-${selectedIdx}`);
+
+      if (selectedIdx === correctIdx) {
+        playSuccessSound();
+        addStars(1);
+        quizScoreCurrentLesson++;
+
+        selectedBtn.classList.remove('bg-slate-50', 'border-slate-200');
+        selectedBtn.classList.add('bg-emerald-500', 'border-emerald-600', 'text-white', 'shadow-md');
+
+        feedback.classList.remove('hidden', 'bg-rose-50', 'text-rose-800', 'border-rose-200');
+        feedback.classList.add('bg-emerald-50', 'text-emerald-900', 'border', 'border-emerald-200');
+        feedback.innerHTML = `
+          <div class="text-3xl">🎉</div>
+          <div>
+            <div class="font-black text-base">答對了！太厲害了！</div>
+            <div class="text-sm text-emerald-800">${explanation}</div>
+          </div>
+        `;
+        speakText(`答對了！${explanation}`);
+      } else {
+        playEncourageSound();
+        selectedBtn.classList.remove('bg-slate-50', 'border-slate-200');
+        selectedBtn.classList.add('bg-rose-100', 'border-rose-400', 'text-rose-800');
+
+        const correctBtn = document.getElementById(`quiz-opt-btn-${correctIdx}`);
+        correctBtn.classList.remove('bg-slate-50');
+        correctBtn.classList.add('bg-emerald-100', 'border-emerald-400', 'text-emerald-900');
+
+        feedback.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-900', 'border-emerald-200');
+        feedback.classList.add('bg-amber-50', 'text-amber-900', 'border', 'border-amber-200');
+        feedback.innerHTML = `
+          <div class="text-3xl">💪</div>
+          <div>
+            <div class="font-black text-base">差一點點！正確答案是「${lesson.quiz[currentQuizIndex].options[correctIdx]}」</div>
+            <div class="text-sm text-amber-800">${explanation}</div>
+          </div>
+        `;
+        speakText(`沒關係！正確答案是：${lesson.quiz[currentQuizIndex].options[correctIdx]}。${explanation}`);
+      }
+
+      nextBtn.classList.remove('hidden');
+      if (currentQuizIndex === lesson.quiz.length - 1) {
+        nextBtn.innerHTML = `查看通關獎勵 🏆`;
+      } else {
+        nextBtn.innerHTML = `下一題 ➔`;
+      }
+    }
+
+    function nextQuizQuestion() {
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      if (currentQuizIndex < lesson.quiz.length - 1) {
+        currentQuizIndex++;
+        renderQuizQuestion();
+      } else {
+        // 完成此課測驗
+        openCongratsModal();
+      }
+    }
+
+    /* ==========================================================================
+       8. 星星計分與通關彈窗獎勵
+       ========================================================================== */
+    function addStars(num) {
+      totalStars += num;
+      const countEl = document.getElementById('star-count');
+      countEl.innerText = totalStars;
+      countEl.parentElement.classList.add('animate-star');
+      setTimeout(() => {
+        countEl.parentElement.classList.remove('animate-star');
+      }, 600);
+    }
+
+    function openCongratsModal() {
+      const modal = document.getElementById('congrats-modal');
+      const lesson = lessonsData.find(l => l.id === currentLessonId);
+      document.getElementById('congrats-msg').innerText = `你已經完成了第 ${lesson.id} 課《${lesson.title}》的學習挑戰，你的表現非常卓越！總共累積了 ${totalStars} 顆星星！`;
+      modal.classList.remove('hidden');
+      playSuccessSound();
+      speakText(`恭喜你完成第 ${lesson.id} 課的挑戰，表現超級棒！`);
+    }
+
+    function closeCongratsModal() {
+      document.getElementById('congrats-modal').classList.add('hidden');
+      currentQuizIndex = 0;
+      renderQuizQuestion();
+    }
+
+    function goToNextLesson() {
+      document.getElementById('congrats-modal').classList.add('hidden');
+      let nextId = currentLessonId + 1;
+      if (nextId > lessonsData.length) {
+        nextId = 1;
+      }
+      switchLesson(nextId);
+    }
+
+    /* ==========================================================================
+       9. 特教友善字級縮放
+       ========================================================================== */
+    function changeFontSize(delta) {
+      playTone(400, 'sine', 0.05);
+      if (delta > 0 && fontSizeMultiplier < 1.35) {
+        fontSizeMultiplier += 0.08;
+      } else if (delta < 0 && fontSizeMultiplier > 0.9) {
+        fontSizeMultiplier -= 0.08;
+      }
+      document.getElementById('content-container').style.fontSize = `${fontSizeMultiplier * 1.125}rem`;
+    }
+
+    /* ==========================================================================
+       10. 頁面載入啟動
+       ========================================================================== */
+    window.onload = function() {
+      renderLessonTabs();
+      renderLessonHeader();
+      renderVocabularies();
+      renderSentenceSection();
+      renderQuizQuestion();
+    };
+  </script>
+</body>
+</html>
